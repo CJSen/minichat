@@ -73,6 +73,229 @@
             border-radius: 3px;
         }
 
+        /* 输入区域样式 */
+        .input-area {
+            margin-bottom: 15px;
+            padding: 0 15px;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 5px 0;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            border: none;
+            background-color: rgba(240, 240, 240, 0.6);
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .dark .action-btn {
+            background-color: rgba(40, 40, 40, 0.6);
+            color: #eee;
+        }
+
+        .action-btn:hover {
+            background-color: rgba(220, 220, 220, 0.8);
+        }
+
+        .dark .action-btn:hover {
+            background-color: rgba(60, 60, 60, 0.8);
+        }
+
+        .gen-text-wrapper {
+            display: flex;
+            margin-top: 5px;
+            border-radius: 12px;
+            background-color: rgba(240, 240, 240, 0.6);
+            overflow: hidden;
+        }
+
+        .dark .gen-text-wrapper {
+            background-color: rgba(40, 40, 40, 0.6);
+        }
+
+        .gen-textarea {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            background: transparent;
+            resize: none;
+            overflow-y: auto;
+            max-height: 150px;
+            color: inherit;
+        }
+
+        .gen-textarea:focus {
+            outline: none;
+        }
+
+        /* 发送按钮样式 */
+        #send {
+            padding: 0 20px;
+            border: none;
+            background-color: #7b68ee;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #send:hover {
+            background-color: #6a5acd;
+        }
+
+        /* 表情弹出层样式 */
+        .emoji-container {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 15px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            max-width: 350px;
+            min-width: 300px;
+            max-height: 350px;
+            margin-bottom: 12px;
+        }
+
+        .emoji-search {
+            margin-bottom: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 101;
+        }
+
+        .emoji-tabs {
+            display: flex;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .emoji-tab {
+            padding: 6px 12px;
+            cursor: pointer;
+            margin-right: 8px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .emoji-tab.active {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .dark .emoji-tab.active {
+            background-color: #444;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            overflow-y: auto;
+            height: 240px;
+            padding: 5px;
+        }
+
+        .emoji-item {
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            transition: transform 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .emoji-item:hover {
+            transform: scale(1.2);
+            background-color: rgba(240, 240, 240, 0.6);
+        }
+
+        .dark .emoji-container {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+        }
+
+        .dark .emoji-item:hover {
+            background-color: rgba(60, 60, 60, 0.6);
+        }
+
+        /* 移动端适配emoji picker，防止遮挡输入框 */
+        @media (max-width: 600px) {
+            .emoji-container {
+                position: fixed !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 120px !important; /* 留出输入区高度 */
+                width: 100vw;
+                max-width: 100vw;
+                min-width: 0;
+                transform: none !important;
+                margin-bottom: 0 !important;
+                z-index: 1002;
+                background: #fff;
+                border-top: 1px solid #eee;
+                box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+                border-radius: 16px 16px 0 0;
+                display: none;
+                flex-direction: column;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            .emoji-container[style*="display: flex"] {
+                display: flex !important;
+            }
+            .emoji-grid {
+                max-height: 36vh;
+                overflow-y: auto;
+                padding-bottom: 12px;
+            }
+
+            .input-area {
+                padding: 0 10px;
+            }
+        }
+        /* emoji item 触控优化 */
+        .emoji-item {
+            font-size: 1.6rem;
+            padding: 8px 0;
+            cursor: pointer;
+            text-align: center;
+            user-select: none;
+        }
+
+        /* 模态框样式 */
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
     </style>
     <script  src="static/vue.global.js"></script>
 </head>
@@ -155,6 +378,9 @@
                         <template v-else-if="msg.cmd === 'exit'">
                             <p class="text-red op-90 text-sm" style="margin:0.5rem 0">{[ msg.payload ]}</p>
                         </template>
+                        <template v-else-if="msg.cmd === 'image'">
+                            <img :src="msg.payload" style="max-width: 100%; max-height: 300px; border-radius: 5px; cursor: pointer;" @click="viewImage(msg.payload)" />
+                        </template>
                         <template v-else>
                             <p style="margin:0" v-html="msg.payload"></p>
                         </template>
@@ -165,10 +391,45 @@
         </div>
     </div>
 
-    <div class="gen-text-wrapper">
-        <textarea id="message" placeholder="Enter something..." autocomplete="off" autofocus="" rows="1" class="gen-textarea"></textarea><button gen-slate-btn="" id="send"  @click="send" >Send</button><button @click="clearScreen" title="Clear" gen-slate-btn=""><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-        <path fill="currentColor" d="M8 20v-5h2v5h9v-7H5v7h3zm-4-9h16V8h-6V4h-4v4H4v3zM3 21v-8H2V7a1 1 0 0 1 1-1h5V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3h5a1 1 0 0 1 1 1v6h-1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path>
-    </svg></button></div>
+    <div class="input-area">
+        <div class="button-group">
+            <button @click="clearScreen" title="Clear" class="action-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M8 20v-5h2v5h9v-7H5v7h3zm-4-9h16V8h-6V4h-4v4H4v3zM3 21v-8H2V7a1 1 0 0 1 1-1h5V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3h5a1 1 0 0 1 1 1v6h-1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path>
+                </svg>
+            </button>
+            <label for="imageUpload" title="Send Image" class="action-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm8 2l3 3h-2v4h-2v-4H8l3-3zm-5 8h10v2H8v-2z" />
+                </svg>
+            </label>
+            <button @click="toggleEmojiPicker($event)" title="Emoji" class="action-btn" style="position: relative;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16a8 8 0 0 0 0 16zm-5-7h2a3 3 0 1 0 6 0h2a5 5 0 0 1-10 0zm1-2a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3zm8 0a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3z" />
+                </svg>
+
+                <!-- 表情弹出层 -->
+                <div id="emojiContainer" class="emoji-container" style="display: none;">
+                    <!-- <div class="emoji-search">
+                        <input type="text" class="input gen-textarea" placeholder="搜索表情..." id="emojiSearch"
+                            oninput="searchEmoji(this.value)">
+                    </div> -->
+                    <div class="emoji-tabs">
+                        <div class="emoji-tab active" data-category="face" onclick="switchEmojiCategory('face')">表情</div>
+                        <div class="emoji-tab" data-category="gesture" onclick="switchEmojiCategory('gesture')">手势</div>
+                        <div class="emoji-tab" data-category="symbol" onclick="switchEmojiCategory('symbol')">符号</div>
+                        <div class="emoji-tab" data-category="animal" onclick="switchEmojiCategory('animal')">动物</div>
+                    </div>
+                    <div id="emojiGrid" class="emoji-grid"></div>
+                </div>
+            </button>
+            <input id="imageUpload" type="file" accept="image/*" style="display: none;" @change="sendImage">
+        </div>
+        <div class="gen-text-wrapper">
+            <textarea id="message" placeholder="Enter something..." autocomplete="off" autofocus="" rows="1" class="gen-textarea"></textarea>
+            <button id="send" @click="send">Send</button>
+        </div>
+    </div>
     <footer>
         <p mt-8="" text-xs="" op-30="">
             <span pr-1=""> Style by</span>
@@ -191,6 +452,188 @@
     let username;
     let roomNumber;
     let password;
+    let pastedImageData = null;
+    let emojiVisible = false;
+    let currentEmojiCategory = 'face';
+
+    // 微信表情分类
+    const emojiCategories = {
+        face: [
+            '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊',
+            '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚', '🙂', '🤗',
+            '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥',
+            '😮', '🤐', '😯', '😪', '😫', '🥱', '😴', '😌', '😛', '😜',
+            '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '🙁',
+            '😖', '😞', '😟', '😤', '😢', '😭', '😦', '😧', '😨', '😩'
+        ],
+        gesture: [
+            '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞',
+            '🤟', '🤘', '🤙', '👈', '👉', '👆', '👇', '☝️', '👍', '👎',
+            '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏',
+            '💪', '🦾', '🖕', '💅', '🤳', '💫', '💥', '💢', '💦', '💨'
+        ],
+        symbol: [
+            '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+            '💯', '💢', '💬', '👁️‍🗨️', '🗨️', '🗯️', '💭', '💤', '🌐', '♠️',
+            '♥️', '♦️', '♣️', '🃏', '🀄', '🎴', '🎭', '🔇', '🔈', '🔉',
+            '🔊', '🔔', '🔕', '🎼', '🎵', '🎶', '💹', '🏧', '🚮', '🚰'
+        ],
+        animal: [
+            '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐻‍❄️', '🐨',
+            '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒',
+            '🦆', '🐧', '🐦', '🐤', '🐣', '🐥', '🦅', '🦉', '🦇', '🐺',
+            '🐗', '🐴', '🦄', '🐝', '🪱', '🐛', '🦋', '🐌', '🐞', '🐜'
+        ]
+    };
+
+    // 切换表情类别
+    function switchEmojiCategory(category) {
+        currentEmojiCategory = category;
+
+        // 更新标签状态
+        const tabs = document.querySelectorAll('.emoji-tab');
+        tabs.forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.category === category);
+        });
+
+        // 重新加载表情
+        loadEmojisByCategory(category);
+
+        // 清空搜索框
+        const emojiSearch = document.getElementById('emojiSearch');
+        if (emojiSearch) emojiSearch.value = '';
+    }
+
+    // 根据类别加载表情
+    function loadEmojisByCategory(category) {
+        const container = document.getElementById('emojiGrid');
+        container.innerHTML = '';
+
+        const emojis = emojiCategories[category] || [];
+        emojis.forEach(emoji => {
+            const emojiElement = document.createElement('div');
+            emojiElement.className = 'emoji-item';
+            emojiElement.textContent = emoji;
+            emojiElement.dataset.emoji = emoji;
+            emojiElement.onclick = function() {
+                insertEmoji(emoji);
+            };
+            container.appendChild(emojiElement);
+        });
+    }
+
+    // 初始化表情选择器
+    function initEmojiPicker() {
+        loadEmojisByCategory(currentEmojiCategory);
+    }
+
+    // 搜索表情 - 跨所有类别
+    function searchEmoji(query) {
+        if (query === '') {
+            // 如果搜索词为空，显示当前选中类别的表情
+            loadEmojisByCategory(currentEmojiCategory);
+            return;
+        }
+
+        query = query.toLowerCase();
+        const container = document.getElementById('emojiGrid');
+        container.innerHTML = '';
+
+        // 从所有类别中搜索
+        Object.values(emojiCategories).flat().forEach(emoji => {
+            if (emoji.toLowerCase().includes(query)) {
+                const emojiElement = document.createElement('div');
+                emojiElement.className = 'emoji-item';
+                emojiElement.textContent = emoji;
+                emojiElement.dataset.emoji = emoji;
+                emojiElement.onclick = function() {
+                    insertEmoji(emoji);
+                };
+                container.appendChild(emojiElement);
+            }
+        });
+    }
+
+    // 插入表情到输入框
+    function insertEmoji(emoji) {
+        const messageInput = document.getElementById('message');
+        messageInput.value += emoji;
+        messageInput.focus();
+        window.toggleEmojiPicker();
+    }
+
+    // 切换表情选择器显示状态
+    window.toggleEmojiPicker = function(event) {
+        // 阻止事件冒泡，这样点击事件不会传递到document
+        if (event) {
+            event.stopPropagation();
+        }
+        const container = document.getElementById('emojiContainer');
+        if (!container) return; // 确保容器存在
+
+        emojiVisible = !emojiVisible;
+        container.style.display = emojiVisible ? 'flex' : 'none';
+
+        // 如果是首次显示，才初始化
+        if (emojiVisible && !document.getElementById('emojiGrid').children.length) {
+            initEmojiPicker();
+        }
+
+        // 清空搜索框
+        if (emojiVisible) {
+            const emojiSearch = document.getElementById('emojiSearch');
+            if (emojiSearch) emojiSearch.value = '';
+            searchEmoji('');
+        }
+    }
+
+    // 图片查看相关函数
+    function closeImageViewModal() {
+        document.getElementById('imageModal').style.display = 'none';
+    }
+
+    function cancelPasteImage() {
+        document.getElementById('pastePreviewModal').style.display = 'none';
+        pastedImageData = null;
+    }
+
+    function confirmPasteImage() {
+        if (ws === null || ws === undefined || ws === "") {
+            alert("The connection is closed, please refresh the page to reconnect！");
+            return;
+        }
+
+        if (pastedImageData) {
+            ws.send(pastedImageData);
+            pastedImageData = null;
+            document.getElementById('pastePreviewModal').style.display = 'none';
+        }
+    }
+
+    // 为图片预览模态框添加回车键监听
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && document.getElementById('pastePreviewModal').style.display === 'block') {
+            e.preventDefault();
+            confirmPasteImage();
+        }
+    });
+
+    // 点击页面其他区域关闭表情选择器
+    document.addEventListener('click', function(e) {
+        const container = document.getElementById('emojiContainer');
+        if (!container) return; // 确保容器存在
+
+        const emojiButton = document.querySelector('button[title="Emoji"]');
+
+        // 如果表情选择器可见，并且点击的不是表情选择器或表情按钮
+        if (emojiVisible &&
+            !container.contains(e.target) &&
+            e.target !== emojiButton &&
+            !emojiButton.contains(e.target)) {
+            emojiVisible = false;
+            container.style.display = 'none';
+        }
+    });
 
     // 滚动到div底部的函数
     function scrollToBottom() {
@@ -399,6 +842,12 @@
                     alert("The connection is closed, please refresh the page to reconnect！");
                     return;
                 }
+
+                // 检查消息是否为空
+                if (!message.trim()) {
+                    return;
+                }
+
                 ws.send(message);
                 document.getElementById('message').value ="";
             },
@@ -407,12 +856,72 @@
             },
             formatDate(value) {
                 return format(value, "yyyy-MM-dd HH:mm:ss");
+            },
+            toggleEmojiPicker(event) {
+                // 阻止事件冒泡，这样点击事件不会传递到document
+                if (event) {
+                    event.stopPropagation();
+                }
+                // 调用全局函数
+                window.toggleEmojiPicker(event);
+            },
+            sendImage(event) {
+                if (ws === null || ws === undefined || ws === "") {
+                    alert("The connection is closed, please refresh the page to reconnect！");
+                    return;
+                }
+
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    ws.send(e.target.result);
+                    // 重置文件输入以允许重新选择相同的文件
+                    document.getElementById('imageUpload').value = '';
+                };
+                reader.readAsDataURL(file);
+            },
+            viewImage(src) {
+                const modalImg = document.getElementById('modalImage');
+                modalImg.src = src;
+                document.getElementById('imageModal').style.display = 'block';
             }
         },
         mounted: function() {
-
             const that = this;
             init(that);
+
+            // 添加粘贴事件监听
+            document.addEventListener('paste', function(e) {
+                if (!e.clipboardData) return;
+
+                // 检查是否包含图片
+                const items = e.clipboardData.items;
+                if (!items) return;
+
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        const blob = items[i].getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            if (ws === null || ws === undefined || ws === "") {
+                                alert("The connection is closed, please refresh the page to reconnect！");
+                                return;
+                            }
+
+                            // 保存图片数据并显示预览
+                            pastedImageData = event.target.result;
+                            const previewImg = document.getElementById('pastePreviewImage');
+                            previewImg.src = pastedImageData;
+                            document.getElementById('pastePreviewModal').style.display = 'block';
+                        };
+                        reader.readAsDataURL(blob);
+                        e.preventDefault();
+                        return;
+                    }
+                }
+            });
         }
     });
 
@@ -442,6 +951,28 @@
         localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
 </script>
+
+<!-- 图片查看模态框 -->
+<div class="modal" id="imageModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8);">
+    <div style="display:flex; justify-content:center; align-items:center; height:100%;">
+        <img id="modalImage" style="max-width:90%; max-height:90vh; border-radius:5px;" />
+    </div>
+    <button class="modal-close" aria-label="close" onclick="closeImageViewModal()" style="position:absolute; top:20px; right:20px; background:transparent; border:none; color:white; font-size:30px; cursor:pointer;">✕</button>
+</div>
+
+<!-- 图片粘贴预览模态框 -->
+<div class="modal" id="pastePreviewModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8);">
+    <div style="background-color:white; margin:10% auto; padding:20px; width:80%; max-width:500px; border-radius:10px;">
+        <h3 style="margin-top:0;">图片预览</h3>
+        <div style="text-align:center; margin:15px 0;">
+            <img id="pastePreviewImage" style="max-width:100%; max-height:300px;" />
+        </div>
+        <div style="text-align:right;">
+            <button onclick="cancelPasteImage()" style="padding:8px 15px; margin-right:10px; background-color:#f0f0f0; border:none; border-radius:5px; cursor:pointer;">取消</button>
+            <button id="confirmPasteBtn" onclick="confirmPasteImage()" style="padding:8px 15px; background-color:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer;">发送</button>
+        </div>
+    </div>
+</div>
 
 </body>
 
