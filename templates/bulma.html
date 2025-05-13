@@ -179,6 +179,79 @@
         .w-full {
             width: 100%;
         }
+
+        /* 表情弹出层样式 */
+        .emoji-container {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 10px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            max-width: 350px;
+            max-height: 350px;
+        }
+
+        .emoji-search {
+            margin-bottom: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 101;
+        }
+
+        .emoji-tabs {
+            display: flex;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .emoji-tab {
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 4px;
+        }
+
+        .emoji-tab.active {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .theme-dark .emoji-tab.active {
+            background-color: #444;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            overflow-y: auto;
+            height: 220px;
+        }
+
+        .emoji-item {
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-item:hover {
+            transform: scale(1.2);
+        }
+
+        .theme-dark .emoji-container {
+            background-color: var(--bulma-scheme-main);
+            border: 1px solid var(--bulma-border);
+        }
     </style>
     <script  src="static/vue.global.js"></script>
 </head>
@@ -260,13 +333,33 @@
         <div class="hero-footer px-5">
             <div class="field is-grouped">
                 <div class="control is-expanded field has-addons">
-                    <p class="control is-expanded">
+                    <p class="control is-expanded relative-position" style="position: relative;">
                         <textarea id="message" placeholder="Enter something..." autocomplete="off" autofocus="" rows="1" class="input"></textarea>
+                        <div id="emojiContainer" class="emoji-container" style="display: none;">
+                            <div class="emoji-search">
+                                <input type="text" class="input is-small" placeholder="搜索表情..." id="emojiSearch" oninput="searchEmoji(this.value)">
+                            </div>
+                            <div class="emoji-tabs">
+                                <div class="emoji-tab active" data-category="face" onclick="switchEmojiCategory('face')">表情</div>
+                                <div class="emoji-tab" data-category="gesture" onclick="switchEmojiCategory('gesture')">手势</div>
+                                <div class="emoji-tab" data-category="symbol" onclick="switchEmojiCategory('symbol')">符号</div>
+                                <div class="emoji-tab" data-category="animal" onclick="switchEmojiCategory('animal')">动物</div>
+                            </div>
+                            <div id="emojiGrid" class="emoji-grid"></div>
+                        </div>
                     </p>
                     <p class="control">
                         <button id="send"  @click="send" class="button is-link">Send</button>
                     </p>
                 </div>
+
+                <p class="control">
+                    <button @click="toggleEmojiPicker" title="Emoji" class="button is-primary is-light is-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16a8 8 0 0 0 0 16zm-5-7h2a3 3 0 1 0 6 0h2a5 5 0 0 1-10 0zm1-2a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3zm8 0a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3z"/>
+                        </svg>
+                    </button>
+                </p>
 
                 <p class="control">
                     <label for="imageUpload" class="button is-info is-light is-medium" title="Send Image">
@@ -359,6 +452,145 @@
         let roomNumber;
         let password;
         let pastedImageData = null;
+        let emojiVisible = false;
+        let currentEmojiCategory = 'face';
+
+        // 微信表情分类
+        const emojiCategories = {
+            face: [
+                '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊',
+                '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚', '🙂', '🤗',
+                '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥',
+                '😮', '🤐', '😯', '😪', '😫', '🥱', '😴', '😌', '😛', '😜',
+                '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '🙁',
+                '😖', '😞', '😟', '😤', '😢', '😭', '😦', '😧', '😨', '😩'
+            ],
+            gesture: [
+                '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞',
+                '🤟', '🤘', '🤙', '👈', '👉', '👆', '👇', '☝️', '👍', '👎',
+                '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏',
+                '💪', '🦾', '🖕', '💅', '🤳', '💫', '💥', '💢', '💦', '💨'
+            ],
+            symbol: [
+                '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+                '💯', '💢', '💬', '👁️‍🗨️', '🗨️', '🗯️', '💭', '💤', '🌐', '♠️',
+                '♥️', '♦️', '♣️', '🃏', '🀄', '🎴', '🎭', '🔇', '🔈', '🔉',
+                '🔊', '🔔', '🔕', '🎼', '🎵', '🎶', '💹', '🏧', '🚮', '🚰'
+            ],
+            animal: [
+                '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐻‍❄️', '🐨',
+                '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒',
+                '🦆', '🐧', '🐦', '🐤', '🐣', '🐥', '🦅', '🦉', '🦇', '🐺',
+                '🐗', '🐴', '🦄', '🐝', '🪱', '🐛', '🦋', '🐌', '🐞', '🐜'
+            ]
+        };
+
+        // 切换表情类别
+        function switchEmojiCategory(category) {
+            currentEmojiCategory = category;
+
+            // 更新标签状态
+            const tabs = document.querySelectorAll('.emoji-tab');
+            tabs.forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.category === category);
+            });
+
+            // 重新加载表情
+            loadEmojisByCategory(category);
+
+            // 清空搜索框
+            document.getElementById('emojiSearch').value = '';
+        }
+
+        // 根据类别加载表情
+        function loadEmojisByCategory(category) {
+            const container = document.getElementById('emojiGrid');
+            container.innerHTML = '';
+
+            const emojis = emojiCategories[category] || [];
+            emojis.forEach(emoji => {
+                const emojiElement = document.createElement('div');
+                emojiElement.className = 'emoji-item';
+                emojiElement.textContent = emoji;
+                emojiElement.dataset.emoji = emoji;
+                emojiElement.onclick = function() {
+                    insertEmoji(emoji);
+                };
+                container.appendChild(emojiElement);
+            });
+        }
+
+        // 初始化表情选择器
+        function initEmojiPicker() {
+            loadEmojisByCategory(currentEmojiCategory);
+        }
+
+        // 搜索表情 - 跨所有类别
+        function searchEmoji(query) {
+            if (query === '') {
+                // 如果搜索词为空，显示当前选中类别的表情
+                loadEmojisByCategory(currentEmojiCategory);
+                return;
+            }
+
+            query = query.toLowerCase();
+            const container = document.getElementById('emojiGrid');
+            container.innerHTML = '';
+
+            // 从所有类别中搜索
+            Object.values(emojiCategories).flat().forEach(emoji => {
+                if (emoji.toLowerCase().includes(query)) {
+                    const emojiElement = document.createElement('div');
+                    emojiElement.className = 'emoji-item';
+                    emojiElement.textContent = emoji;
+                    emojiElement.dataset.emoji = emoji;
+                    emojiElement.onclick = function() {
+                        insertEmoji(emoji);
+                    };
+                    container.appendChild(emojiElement);
+                }
+            });
+        }
+
+        // 插入表情到输入框
+        function insertEmoji(emoji) {
+            const messageInput = document.getElementById('message');
+            messageInput.value += emoji;
+            messageInput.focus();
+            toggleEmojiPicker();
+        }
+
+        // 切换表情选择器显示状态
+        function toggleEmojiPicker() {
+            const container = document.getElementById('emojiContainer');
+            emojiVisible = !emojiVisible;
+            container.style.display = emojiVisible ? 'flex' : 'none';
+
+            // 如果是首次显示，才初始化
+            if (emojiVisible && !document.getElementById('emojiGrid').children.length) {
+                initEmojiPicker();
+            }
+
+            // 清空搜索框
+            if (emojiVisible) {
+                document.getElementById('emojiSearch').value = '';
+                searchEmoji('');
+            }
+        }
+
+        // 点击页面其他区域关闭表情选择器
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('emojiContainer');
+            const emojiButton = document.querySelector('button[title="Emoji"]');
+
+            if (emojiVisible &&
+                !container.contains(e.target) &&
+                e.target !== emojiButton &&
+                !emojiButton.contains(e.target)) {
+                emojiVisible = false;
+                container.style.display = 'none';
+            }
+        });
 
         function closeImageViewModal() {
             document.getElementById('imageModal').classList.remove('is-active');
@@ -616,6 +848,9 @@
                 },
                 closeImageModal() {
                     document.getElementById('imageModal').classList.remove('is-active');
+                },
+                toggleEmojiPicker() {
+                    toggleEmojiPicker();
                 }
             },
             mounted: function() {
