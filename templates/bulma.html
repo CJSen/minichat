@@ -252,6 +252,49 @@
             background-color: var(--bulma-scheme-main);
             border: 1px solid var(--bulma-border);
         }
+
+        /* 移动端适配 emoji picker，防止遮挡输入框 */
+        @media (max-width: 600px) {
+            .emoji-container {
+                position: fixed !important;
+                left: 0;
+                right: 0;
+                bottom: 56px; /* 留出输入区高度 */
+                width: 100vw;
+                max-width: 100vw;
+                min-width: 0;
+                z-index: 1002;
+                background: #fff;
+                border-top: 1px solid #eee;
+                box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+                border-radius: 12px 12px 0 0;
+                display: none;
+                flex-direction: column;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            .emoji-container[style*="display: flex"] {
+                display: flex !important;
+            }
+            .emoji-grid {
+                max-height: 32vh;
+                overflow-y: auto;
+                padding-bottom: 8px;
+            }
+            .field.has-addons {
+                margin-bottom: 0 !important;
+            }
+            .hero-footer {
+                padding-bottom: env(safe-area-inset-bottom, 8px);
+            }
+        }
+        /* emoji item 触控优化 */
+        .emoji-item {
+            font-size: 1.8rem;
+            padding: 8px 0;
+            cursor: pointer;
+            text-align: center;
+            user-select: none;
+        }
     </style>
     <script  src="static/vue.global.js"></script>
 </head>
@@ -332,50 +375,60 @@
 
         <div class="hero-footer px-5">
             <div class="field is-grouped">
-                <div class="control is-expanded field has-addons">
-                    <p class="control is-expanded relative-position" style="position: relative;">
-                        <textarea id="message" placeholder="Enter something..." autocomplete="off" autofocus="" rows="1" class="input"></textarea>
-                        <div id="emojiContainer" class="emoji-container" style="display: none;">
-                            <div class="emoji-search">
-                                <input type="text" class="input is-small" placeholder="搜索表情..." id="emojiSearch" oninput="searchEmoji(this.value)">
-                            </div>
-                            <div class="emoji-tabs">
-                                <div class="emoji-tab active" data-category="face" onclick="switchEmojiCategory('face')">表情</div>
-                                <div class="emoji-tab" data-category="gesture" onclick="switchEmojiCategory('gesture')">手势</div>
-                                <div class="emoji-tab" data-category="symbol" onclick="switchEmojiCategory('symbol')">符号</div>
-                                <div class="emoji-tab" data-category="animal" onclick="switchEmojiCategory('animal')">动物</div>
-                            </div>
-                            <div id="emojiGrid" class="emoji-grid"></div>
-                        </div>
-                    </p>
-                    <p class="control">
-                        <button id="send"  @click="send" class="button is-link">Send</button>
-                    </p>
-                </div>
 
-                <p class="control">
-                    <button @click="toggleEmojiPicker" title="Emoji" class="button is-primary is-light is-medium">
+                <div class="control">
+                    <button @click="clearScreen" title="Clear" class="button is-warning is-light is-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-                            <path fill="currentColor" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16a8 8 0 0 0 0 16zm-5-7h2a3 3 0 1 0 6 0h2a5 5 0 0 1-10 0zm1-2a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3zm8 0a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3z"/>
+                            <path fill="currentColor"
+                                d="M8 20v-5h2v5h9v-7H5v7h3zm-4-9h16V8h-6V4h-4v4H4v3zM3 21v-8H2V7a1 1 0 0 1 1-1h5V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3h5a1 1 0 0 1 1 1v6h-1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" />
                         </svg>
                     </button>
-                </p>
+                </div>
 
-                <p class="control">
+                <div class="control">
                     <label for="imageUpload" class="button is-info is-light is-medium" title="Send Image">
                         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-                            <path fill="currentColor" d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm8 2l3 3h-2v4h-2v-4H8l3-3zm-5 8h10v2H8v-2z"/>
+                            <path fill="currentColor"
+                                d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm8 2l3 3h-2v4h-2v-4H8l3-3zm-5 8h10v2H8v-2z" />
                         </svg>
                     </label>
                     <input id="imageUpload" type="file" accept="image/*" style="display: none;" @change="sendImage">
-                </p>
+                </div>
 
-                <p class="control">
-                    <button @click="clearScreen" title="Clear" class="button is-warning is-light is-medium">
+                <div class="control">
+                    <button @click="toggleEmojiPicker($event)" title="Emoji" class="button is-primary is-light is-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-                            <path fill="currentColor" d="M8 20v-5h2v5h9v-7H5v7h3zm-4-9h16V8h-6V4h-4v4H4v3zM3 21v-8H2V7a1 1 0 0 1 1-1h5V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3h5a1 1 0 0 1 1 1v6h-1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path>
+                            <path fill="currentColor"
+                                d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16a8 8 0 0 0 0 16zm-5-7h2a3 3 0 1 0 6 0h2a5 5 0 0 1-10 0zm1-2a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3zm8 0a1.5 1.5 0 1 1 0-3a1.5 1.5 0 0 1 0 3z" />
                         </svg>
                     </button>
+                    <div id="emojiContainer" class="emoji-container" style="display: none;">
+                        <!-- <div class="emoji-search">
+                            <input type="text" class="input is-small" placeholder="搜索表情..." id="emojiSearch"
+                                oninput="searchEmoji(this.value)">
+                        </div> -->
+                        <div class="emoji-tabs">
+                            <div class="emoji-tab active" data-category="face" onclick="switchEmojiCategory('face')">表情
+                            </div>
+                            <div class="emoji-tab" data-category="gesture" onclick="switchEmojiCategory('gesture')">手势
+                            </div>
+                            <div class="emoji-tab" data-category="symbol" onclick="switchEmojiCategory('symbol')">符号
+                            </div>
+                            <div class="emoji-tab" data-category="animal" onclick="switchEmojiCategory('animal')">动物
+                            </div>
+                        </div>
+                        <div id="emojiGrid" class="emoji-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control is-expanded field has-addons">
+                <p class="control is-expanded relative-position" style="position: relative;">
+                    <textarea id="message" placeholder="Enter something..." autocomplete="off" autofocus="" rows="1"
+                        class="input"></textarea>
+                </p>
+                <p class="control">
+                    <button id="send" @click="send" class="button is-link">Send</button>
                 </p>
             </div>
 
