@@ -412,7 +412,7 @@
             </section>
             <footer class="modal-card-foot py-3 is-justify-content-flex-end">
                 <button class="button" onclick="cancelPasteImage()">取消</button>
-                <button class="button is-link" onclick="confirmPasteImage()">发送</button>
+                <button id="confirmPasteBtn" class="button is-link" onclick="confirmPasteImage()">发送</button>
             </footer>
         </div>
     </div>
@@ -614,6 +614,14 @@
             }
         }
 
+        // 为图片预览模态框添加回车键监听
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.getElementById('pastePreviewModal').classList.contains('is-active')) {
+                e.preventDefault();
+                confirmPasteImage();
+            }
+        });
+
         // 滚动到div底部的函数
         function scrollToBottom() {
             // var myDiv = document.getElementById('messages');
@@ -774,6 +782,12 @@
                                     alert("The connection is closed, please refresh the page to reconnect！");
                                         return;
                                 }
+
+                                // 检查消息是否为空
+                                if (!message.trim()) {
+                                    return;
+                                }
+
                                 ws.send(message);
                                 document.getElementById('message').value ="";
                             }
@@ -812,6 +826,11 @@
                     var message = document.getElementById('message').value;
                     if (ws === null || ws === undefined || ws === "" ) {
                         alert("The connection is closed, please refresh the page to reconnect！");
+                        return;
+                    }
+
+                    // 检查消息是否为空
+                    if (!message.trim()) {
                         return;
                     }
 
