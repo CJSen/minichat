@@ -842,7 +842,18 @@
                                 }
 
                                 ws.send(message);
-                                document.getElementById('message').value ="";
+
+                                // 不使用清空值的方式，而是替换内容并保持焦点
+                                const messageInput = document.getElementById('message');
+                                messageInput.value = "";
+
+                                // 保持焦点，这样输入法不会收起
+                                messageInput.focus();
+
+                                // 如果是移动设备，设置最小高度防止输入框收缩
+                                if (/Mobi|Android/i.test(navigator.userAgent)) {
+                                    messageInput.style.minHeight = '20px';
+                                }
                             }
                         });
 
@@ -888,7 +899,18 @@
                     }
 
                     ws.send(message);
-                    document.getElementById('message').value ="";
+
+                    // 不使用清空值的方式，而是替换内容并保持焦点
+                    const messageInput = document.getElementById('message');
+                    messageInput.value = "";
+
+                    // 保持焦点，这样输入法不会收起
+                    messageInput.focus();
+
+                    // 如果是移动设备，设置最小高度防止输入框收缩
+                    if (/Mobi|Android/i.test(navigator.userAgent)) {
+                        messageInput.style.minHeight = '20px';
+                    }
                 },
                 sendImage(event) {
                     if (ws === null || ws === undefined || ws === "") {
