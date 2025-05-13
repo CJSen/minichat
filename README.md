@@ -1,10 +1,17 @@
-# MiniChat  
+# MiniChat
 
-[click to demo](https://chat.lion.im)  
-  
+[click to demo](https://chat.lion.im)
+
 MiniChat 是一款Go语言实现的极简、极轻、无痕匿名聊天工具，开发此程序的本意是用于自己平日与好友临时讨论敏感话题时使用，现开源共享，代码简陋，请多包涵。
 
 **如有兴致，还请赏个 github 的 Star .**
+
+## fork代码新增
+
+* 支持发送图片消息（新增功能）
+* 提供默认表情库方便快速聊天（新增功能）
+* 一些主题优化
+* 一些代码优化
 
 ## 特性
 
