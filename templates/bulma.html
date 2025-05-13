@@ -244,7 +244,12 @@
                             system: msg.cmd === 'join' || msg.cmd === 'exit'
                         }">
                             <div class="msg-item last">
-                                <p v-html="msg.payload"></p>
+                                <template v-if="msg.cmd === 'image'">
+                                    <img :src="msg.payload" style="max-width: 100%; max-height: 300px; border-radius: 5px; cursor: pointer;" @click="viewImage(msg.payload)" />
+                                </template>
+                                <template v-else>
+                                    <p v-html="msg.payload"></p>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -262,6 +267,15 @@
                         <button id="send"  @click="send" class="button is-link">Send</button>
                     </p>
                 </div>
+
+                <p class="control">
+                    <label for="imageUpload" class="button is-info is-light is-medium" title="Send Image">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm8 2l3 3h-2v4h-2v-4H8l3-3zm-5 8h10v2H8v-2z"/>
+                        </svg>
+                    </label>
+                    <input id="imageUpload" type="file" accept="image/*" style="display: none;" @change="sendImage">
+                </p>
 
                 <p class="control">
                     <button @click="clearScreen" title="Clear" class="button is-warning is-light is-medium">
@@ -283,6 +297,32 @@
             </footer>
         </div>
     </main>
+
+    <!-- 图片查看模态框 -->
+    <div class="modal" id="imageModal">
+        <div class="modal-background" onclick="closeImageViewModal()"></div>
+        <div class="modal-content" style="text-align: center; max-width: 90%; max-height: 90%;">
+            <img id="modalImage" style="max-width: 100%; max-height: 90vh;" />
+        </div>
+        <button class="modal-close is-large" aria-label="close" onclick="closeImageViewModal()"></button>
+    </div>
+
+    <!-- 图片粘贴预览模态框 -->
+    <div class="modal" id="pastePreviewModal">
+        <div class="modal-background"></div>
+        <div class="modal-card" style="max-width: 90%">
+            <header class="modal-card-head py-3">
+                <p class="modal-card-title">图片预览</p>
+            </header>
+            <section class="modal-card-body py-3 has-text-centered">
+                <img id="pastePreviewImage" style="max-width: 100%; max-height: 300px;" />
+            </section>
+            <footer class="modal-card-foot py-3 is-justify-content-flex-end">
+                <button class="button" onclick="cancelPasteImage()">取消</button>
+                <button class="button is-link" onclick="confirmPasteImage()">发送</button>
+            </footer>
+        </div>
+    </div>
 
     <div class="modal" id="popup">
         <div class="modal-background"></div>
@@ -318,6 +358,29 @@
         let username;
         let roomNumber;
         let password;
+        let pastedImageData = null;
+
+        function closeImageViewModal() {
+            document.getElementById('imageModal').classList.remove('is-active');
+        }
+
+        function cancelPasteImage() {
+            document.getElementById('pastePreviewModal').classList.remove('is-active');
+            pastedImageData = null;
+        }
+
+        function confirmPasteImage() {
+            if (ws === null || ws === undefined || ws === "") {
+                alert("The connection is closed, please refresh the page to reconnect！");
+                return;
+            }
+
+            if (pastedImageData) {
+                ws.send(pastedImageData);
+                pastedImageData = null;
+                document.getElementById('pastePreviewModal').classList.remove('is-active');
+            }
+        }
 
         // 滚动到div底部的函数
         function scrollToBottom() {
@@ -523,17 +586,72 @@
                     ws.send(message);
                     document.getElementById('message').value ="";
                 },
+                sendImage(event) {
+                    if (ws === null || ws === undefined || ws === "") {
+                        alert("The connection is closed, please refresh the page to reconnect！");
+                        return;
+                    }
+
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        ws.send(e.target.result);
+                        // 重置文件输入以允许重新选择相同的文件
+                        document.getElementById('imageUpload').value = '';
+                    };
+                    reader.readAsDataURL(file);
+                },
                 clearScreen(){
                     this.items = [];
                 },
                 formatDate(value) {
                     return format(value, "yyyy-MM-dd HH:mm:ss");
+                },
+                viewImage(src) {
+                    const modalImg = document.getElementById('modalImage');
+                    modalImg.src = src;
+                    document.getElementById('imageModal').classList.add('is-active');
+                },
+                closeImageModal() {
+                    document.getElementById('imageModal').classList.remove('is-active');
                 }
             },
             mounted: function() {
-
                 const that = this;
                 init(that);
+
+                // 添加粘贴事件监听
+                document.addEventListener('paste', function(e) {
+                    if (!e.clipboardData) return;
+
+                    // 检查是否包含图片
+                    const items = e.clipboardData.items;
+                    if (!items) return;
+
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            const blob = items[i].getAsFile();
+                            const reader = new FileReader();
+                            reader.onload = function(event) {
+                                if (ws === null || ws === undefined || ws === "") {
+                                    alert("The connection is closed, please refresh the page to reconnect！");
+                                    return;
+                                }
+
+                                // 保存图片数据并显示预览
+                                pastedImageData = event.target.result;
+                                const previewImg = document.getElementById('pastePreviewImage');
+                                previewImg.src = pastedImageData;
+                                document.getElementById('pastePreviewModal').classList.add('is-active');
+                            };
+                            reader.readAsDataURL(blob);
+                            e.preventDefault();
+                            return;
+                        }
+                    }
+                });
             }
         });
 

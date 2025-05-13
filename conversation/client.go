@@ -5,6 +5,7 @@ import (
 	"log"
 	"minichat/constant"
 	"minichat/util"
+	"strings"
 )
 
 func (c *Client) Read() {
@@ -17,11 +18,20 @@ func (c *Client) Read() {
 		if err != nil {
 			return
 		}
+
+		// 判断是否为图片消息
+		var cmd string
+		if strings.HasPrefix(string(message), "data:image/") {
+			cmd = constant.CmdImage
+		} else {
+			cmd = constant.CmdChat
+		}
+
 		Manager.broadcast <- Message{
 			UserName:   c.UserName,
 			RoomNumber: c.RoomNumber,
 			Payload:    string(message),
-			Cmd:        constant.CmdChat,
+			Cmd:        cmd,
 		}
 	}
 }

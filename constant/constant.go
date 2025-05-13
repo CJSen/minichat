@@ -4,6 +4,7 @@ const (
 	CmdChat             = "chat"
 	CmdJoin             = "join"
 	CmdExit             = "exit"
+	CmdImage            = "image"
 	CmdJoinPasswordFail = "join-pwd-fail"
 	JoinSuccess         = "Join success 🌟! "
 	ExitSuccess         = "Exit success 🌟! "
