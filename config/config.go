@@ -1,15 +1,17 @@
 package config
 
 import (
-	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"path/filepath"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Port      int    `yaml:"port"`
-	ServerUrl string `yaml:"server_url"`
+	Port        int      `yaml:"port"`
+	ServerUrl   string   `yaml:"server_url"`
+	CorsOrigins []string `yaml:"cors_origins"`
 }
 
 var GlobalConfig *Config
