@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"html/template"
 	"io"
 	"io/fs"
@@ -13,14 +12,16 @@ import (
 	"minichat/conversation"
 	"minichat/util"
 	"net/http"
-	"time"
 	"os"
+	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 var (
 	upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
+		ReadBufferSize:  10 * 1024 * 1024, // 10MB
+		WriteBufferSize: 10 * 1024 * 1024, // 10MB
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
@@ -253,7 +254,7 @@ func HandleFiles(w http.ResponseWriter, _ *http.Request, dirTemplate fs.FS) {
 	tmplName := os.Getenv("TEMPLATE_NAME")
 
 	if tmplName == "" {
-    tmplName = "bulma"
+		tmplName = "bulma"
 	}
 
 	tmpl, err := template.ParseFS(dirTemplate, fmt.Sprintf("templates/%s.html", tmplName))

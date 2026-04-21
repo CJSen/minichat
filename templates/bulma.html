@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -295,6 +295,11 @@
             text-align: center;
             user-select: none;
         }
+
+        /* 图片查看模态框按钮样式 */
+        #imageModal button:hover {
+            background-color: rgba(0,0,0,0.7) !important;
+        }
     </style>
     <script  src="static/vue.global.js"></script>
 </head>
@@ -445,12 +450,19 @@
     </main>
 
     <!-- 图片查看模态框 -->
-    <div class="modal" id="imageModal">
-        <div class="modal-background" onclick="closeImageViewModal()"></div>
-        <div class="modal-content" style="text-align: center; max-width: 90%; max-height: 90%;">
-            <img id="modalImage" style="max-width: 100%; max-height: 90vh;" />
+    <div class="modal" id="imageModal" style="align-items: center; display: none; flex-direction: column; justify-content: center; position: fixed; z-index: 40; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.86);">
+        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+            <img id="modalImage" style="max-width: 95%; max-height: 95vh; object-fit: contain; transition: transform 0.2s ease;" />
         </div>
-        <button class="modal-close is-large" aria-label="close" onclick="closeImageViewModal()"></button>
+        <!-- 缩放控制按钮 -->
+        <div style="position: absolute; top: 20px; right: 80px; display: flex; gap: 10px; z-index: 41; align-items: center;">
+            <button onclick="zoomOut()" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">-</button>
+            <span id="zoomLevel" style="color: white; font-size: 16px; min-width: 50px; text-align: center;">80%</span>
+            <button onclick="zoomIn()" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">+</button>
+            <button onclick="resetZoom()" style="background: rgba(0,0,0,0.5); border: none; color: white; padding: 0 12px; height: 44px; border-radius: 22px; cursor: pointer; font-size: 14px; display: flex; align-items: center; transition: background 0.2s;">重置</button>
+        </div>
+        <!-- 关闭按钮 -->
+        <button class="modal-close is-large" aria-label="close" onclick="closeImageViewModal()" style="position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); border: none; color: white; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; z-index: 41; font-size: 24px; line-height: 1; display: flex; align-items: center; justify-content: center;">✕</button>
     </div>
 
     <!-- 图片粘贴预览模态框 -->
@@ -646,7 +658,42 @@
         });
 
         function closeImageViewModal() {
-            document.getElementById('imageModal').classList.remove('is-active');
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = ''; // 恢复背景滚动
+            resetZoom();
+        }
+
+        // 图片缩放相关变量和函数
+        let currentZoom = 0.8;
+        let zoomStep = 0.1;
+        let minZoom = 0.1;
+        let maxZoom = 5;
+
+        function updateZoom() {
+            const img = document.getElementById('modalImage');
+            const zoomLevel = document.getElementById('zoomLevel');
+            img.style.transform = `scale(${currentZoom})`;
+            zoomLevel.textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        function zoomIn() {
+            if (currentZoom < maxZoom) {
+                currentZoom = Math.min(currentZoom + zoomStep, maxZoom);
+                updateZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (currentZoom > minZoom) {
+                currentZoom = Math.max(currentZoom - zoomStep, minZoom);
+                updateZoom();
+            }
+        }
+
+        function resetZoom() {
+            currentZoom = 0.8;
+            updateZoom();
         }
 
         function cancelPasteImage() {
@@ -936,9 +983,26 @@
                     return format(value, "yyyy-MM-dd HH:mm:ss");
                 },
                 viewImage(src) {
+                    const modal = document.getElementById('imageModal');
                     const modalImg = document.getElementById('modalImage');
                     modalImg.src = src;
-                    document.getElementById('imageModal').classList.add('is-active');
+
+                    // 重置缩放
+                    resetZoom();
+
+                    // 使用 flexbox 居中显示
+                    modal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden'; // 防止背景滚动
+
+                    // 添加鼠标滚轮缩放
+                    // modalImg.onwheel = function(e) {
+                    //     e.preventDefault();
+                    //     if (e.deltaY < 0) {
+                    //         zoomIn();
+                    //     } else {
+                    //         zoomOut();
+                    //     }
+                    // };
                 },
                 closeImageModal() {
                     document.getElementById('imageModal').classList.remove('is-active');
