@@ -555,6 +555,7 @@
         const maxRetries = 5;
         let reconnectDelay = 1000;
         const maxDelay = 30000;
+        let reconnectFailed = false;
 
         // Session storage functions
         function saveSession() {
@@ -601,21 +602,39 @@
         }
 
         function showDisconnectMessage() {
-            const indicator = document.getElementById('reconnect-indicator');
-            if (indicator) {
-                indicator.className = 'disconnect-message';
+            let indicator = document.getElementById('reconnect-indicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'reconnect-indicator';
+                document.body.appendChild(indicator);
+            }
+            indicator.className = 'disconnect-message';
+            if (reconnectFailed) {
+                indicator.innerHTML = 'Failed to reconnect after ' + maxRetries + ' attempts.<br>Please refresh the page to try again.<br><button onclick="refreshPage()" style="margin-top: 10px; padding: 8px 16px; cursor: pointer;">Refresh Page</button>';
+            } else {
                 indicator.textContent = 'Connection lost. Please refresh the page to reconnect.';
             }
+            indicator.style.display = 'block';
+        }
+
+        function refreshPage() {
+            clearSession();
+            window.location.reload();
         }
 
         // Reconnection functions
         function handleDisconnect() {
+            if (reconnectFailed) {
+                showDisconnectMessage();
+                return;
+            }
             const session = loadSession();
             if (!session) {
                 showDisconnectMessage();
                 return;
             }
             if (reconnectAttempts >= maxRetries) {
+                reconnectFailed = true;
                 showDisconnectMessage();
                 return;
             }
@@ -627,6 +646,7 @@
             console.log('Network online, attempting reconnect...');
             if (ws === null || ws === undefined) {
                 reconnectAttempts = 0;
+                reconnectFailed = false;
                 reconnectDelay = 1000;
                 doReconnect();
             }
@@ -697,6 +717,7 @@
                 console.log("Socket reconnected");
                 saveSession();
                 reconnectAttempts = 0;
+                reconnectFailed = false;
                 reconnectDelay = 1000;
                 hideReconnectIndicator();
             };
@@ -1065,6 +1086,7 @@
                             console.log("Socket opened");
                             saveSession();
                             reconnectAttempts = 0;
+                            reconnectFailed = false;
                             reconnectDelay = 1000;
                             hideReconnectIndicator();
                         };
