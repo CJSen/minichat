@@ -300,6 +300,36 @@
         #imageModal button:hover {
             background-color: rgba(0,0,0,0.7) !important;
         }
+
+        /* 重连指示器样式 */
+        .reconnect-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .disconnect-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            text-align: center;
+            border: 1px solid #ff6b6b;
+        }
     </style>
     <script  src="static/vue.global.js"></script>
 </head>
@@ -519,6 +549,180 @@
         let pastedImageData = null;
         let emojiVisible = false;
         let currentEmojiCategory = 'face';
+
+        // Reconnection state
+        let reconnectAttempts = 0;
+        const maxRetries = 5;
+        let reconnectDelay = 1000;
+        const maxDelay = 30000;
+
+        // Session storage functions
+        function saveSession() {
+            if (roomNumber && username) {
+                sessionStorage.setItem('minichat_session', JSON.stringify({
+                    roomNumber: roomNumber,
+                    username: username,
+                    password: password || ''
+                }));
+            }
+        }
+
+        function loadSession() {
+            const data = sessionStorage.getItem('minichat_session');
+            return data ? JSON.parse(data) : null;
+        }
+
+        function clearSession() {
+            sessionStorage.removeItem('minichat_session');
+        }
+
+        // UI indicator functions
+        function showReconnectIndicator(attempt) {
+            let indicator = document.getElementById('reconnect-indicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'reconnect-indicator';
+                document.body.appendChild(indicator);
+            }
+            indicator.className = 'reconnect-indicator';
+            indicator.style.display = 'block';
+            if (attempt > 0) {
+                indicator.textContent = 'Reconnecting... (' + attempt + '/' + maxRetries + ')';
+            } else {
+                indicator.textContent = 'Reconnecting...';
+            }
+        }
+
+        function hideReconnectIndicator() {
+            const indicator = document.getElementById('reconnect-indicator');
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
+
+        function showDisconnectMessage() {
+            const indicator = document.getElementById('reconnect-indicator');
+            if (indicator) {
+                indicator.className = 'disconnect-message';
+                indicator.textContent = 'Connection lost. Please refresh the page to reconnect.';
+            }
+        }
+
+        // Reconnection functions
+        function handleDisconnect() {
+            const session = loadSession();
+            if (!session) {
+                showDisconnectMessage();
+                return;
+            }
+            if (reconnectAttempts >= maxRetries) {
+                showDisconnectMessage();
+                return;
+            }
+            scheduleReconnect();
+        }
+
+        // 网络状态监听
+        window.addEventListener('online', function() {
+            console.log('Network online, attempting reconnect...');
+            if (ws === null || ws === undefined) {
+                reconnectAttempts = 0;
+                reconnectDelay = 1000;
+                doReconnect();
+            }
+        });
+
+        function scheduleReconnect() {
+            reconnectAttempts++;
+            showReconnectIndicator(reconnectAttempts);
+            setTimeout(function() {
+                doReconnect();
+            }, reconnectDelay);
+
+            // Exponential backoff
+            reconnectDelay = Math.min(reconnectDelay * 2, maxDelay);
+        }
+
+        function doReconnect() {
+            const session = loadSession();
+            if (!session) {
+                showDisconnectMessage();
+                return;
+            }
+
+            roomNumber = session.roomNumber;
+            username = session.username;
+            password = session.password;
+
+            const serverApi = window.location.protocol + '//' + (host || window.location.host);
+            const url = serverApi + '/precheck';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    'room_number': roomNumber,
+                    'username': username,
+                    'password': password
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code !== 10000) {
+                        showDisconnectMessage();
+                        return;
+                    }
+
+                    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+                    const wsHost = host || window.location.host;
+                    const wsUrl = protocol + wsHost + '/ws?username=' + username + '&room_number=' + roomNumber + '&password=' + password + '&cmd=join&once_token=' + data.data;
+
+                    ws = new WebSocket(wsUrl);
+                    setupWebSocketHandlers();
+                })
+                .catch(function(err) {
+                    console.log('Reconnect error:', err);
+                    if (reconnectAttempts < maxRetries) {
+                        scheduleReconnect();
+                    } else {
+                        showDisconnectMessage();
+                    }
+                });
+        }
+
+        function setupWebSocketHandlers() {
+            ws.onopen = function() {
+                console.log("Socket reconnected");
+                saveSession();
+                reconnectAttempts = 0;
+                reconnectDelay = 1000;
+                hideReconnectIndicator();
+            };
+
+            ws.onmessage = function(event) {
+                const messageData = JSON.parse(event.data);
+                if (messageData.username && messageData.cmd !== 'join' && messageData.cmd !== 'exit' && messageData.cmd !== 'chat' && messageData.cmd !== 'image') {
+                    username = messageData.username;
+                }
+                vm.items.push(messageData);
+                vm.$nextTick(function() {
+                    scrollToBottom();
+                });
+            };
+
+            ws.onclose = function() {
+                console.log("Socket closed");
+                ws = null;
+                handleDisconnect();
+            };
+
+            ws.onerror = function() {
+                console.log("Socket error");
+                ws = null;
+            };
+        }
 
         // 微信表情分类
         const emojiCategories = {
@@ -859,15 +1063,20 @@
 
                         ws.onopen = function() {
                             console.log("Socket opened");
+                            saveSession();
+                            reconnectAttempts = 0;
+                            reconnectDelay = 1000;
+                            hideReconnectIndicator();
                         };
 
                         ws.onclose = function() {
                             console.log("Socket closed");
-                            ws = null
+                            ws = null;
+                            handleDisconnect();
                         };
                         ws.onerror = function() {
                             console.log("Socket error");
-                            ws = null
+                            ws = null;
                         }
 
                         document.getElementById('popup').classList.remove('is-active');
