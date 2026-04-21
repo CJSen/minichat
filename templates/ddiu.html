@@ -51,6 +51,40 @@
             display: none;
         }
 
+        /* 房间URL提示框样式 */
+        .room-url-tip {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 10px 15px;
+            max-width: 300px;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+        }
+
+        .dark .room-url-tip {
+            background-color: rgba(40, 40, 40, 0.95);
+            border-color: rgba(255, 100, 100, 0.5);
+        }
+
+        .room-url-tip .close-tip {
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            cursor: pointer;
+            color: #999;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .room-url-tip .close-tip:hover {
+            color: #333;
+        }
+
         .container {
             height: calc(100% - 64px - 106px - 16px - 26px);
             overflow: auto;
@@ -352,10 +386,13 @@
             <span class="gpt-subtitle">Chat</span>
         </div>
 <!--        <p mt-1="" op-60=""  ></p>-->
-        <div class="my-4 px-4 py-3 border border-red/50 bg-red/10" v-show="roomTips != ''">
-            <div class="text-red op-70 text-sm" v-html="roomTips"></div>
-        </div>
     </header>
+
+    <!-- 房间URL提示框（固定定位，不占布局空间） -->
+    <div class="room-url-tip" v-show="roomTips != ''">
+        <span class="close-tip" @click="roomTips = ''">✕</span>
+        <div class="text-red op-70" v-html="roomTips"></div>
+    </div>
 
     <div data-hk="s00-0" my-6="" id="messages" class="container">
         <div data-hk="s00-1-0" class="my-4">
