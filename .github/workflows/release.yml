@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_ver.outputs.VERSION }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # 必须要有完整历史才能获取 tag
+      - id: get_ver
+        run: |
+          # 获取最近的一个 tag
+          VERSION=$(git describe --tags --abbrev=0)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [linux, windows, darwin]
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with: { go-version: '1.22' }
+
+      - name: Build
+        run: |
+          VERSION=${{ needs.prepare.outputs.version }}
+          EXT=$([[ "${{ matrix.os }}" == "windows" ]] && echo ".exe" || echo "")
+          NAME="minichat_${VERSION}_${{ matrix.os }}_${{ matrix.arch }}$EXT"
+
+          CGO_ENABLED=0 GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} \
+          go build -ldflags="-s -w -X main.version=$VERSION" -o "$NAME" .
+          tar -czf "$NAME.tar.gz" "$NAME"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ matrix.os }}-${{ matrix.arch }}
+          path: "*.tar.gz"
+
+  release:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.version }}
+          files: artifacts/**/*.tar.gz
+          generate_release_notes: true
